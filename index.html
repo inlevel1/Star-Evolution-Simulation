@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>에너지 보존법칙 및 질량·에너지 등가 원리를 응용한항성의 진화 시뮬레이션</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="p-4">
+    <div class="container">
+        <h2 class="mb-1 text-center text-light">에너지 보존법칙 및 질량·에너지 등가 원리를 응용한 항성의 진화 시뮬레이션</h2>
+        <p class="text-center text-muted mb-4">정역학 평형, 질량 방정식, 복사·대류 전달 식, 에너지 생성 식, 이상기체 상태 방정식 및 E=mc² 적용</p>
+
+        <div class="row g-4">
+            <!-- 조작 및 상태 패널 -->
+            <div class="col-lg-4">
+                <div class="card p-3 shadow-sm mb-3">
+                    <h5 class="card-title text-info mb-3">시뮬레이션 제어</h5>
+                    <div class="mb-3">
+                        <label class="form-label">초기 질량: <span id="massVal" class="fw-bold text-warning">1.0</span> M(solar)</label>
+                        <input type="range" class="form-range" id="massRange" min="0.5" max="15.0" step="0.5" value="1.0">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">진화 시간: <span id="timeVal" class="fw-bold text-warning">0.0</span> Gyr</label>
+                        <!-- 타임라인을 15 Gyr(150)까지 확장 -->
+                        <input type="range" class="form-range" id="timeRange" min="0" max="150" value="0">
+                    </div>
+                    <button class="btn btn-primary w-100 mb-2" id="playBtn">재생</button>
+                    <button class="btn btn-outline-secondary w-100" id="resetBtn">초기화</button>
+                </div>
+
+                <!-- 에너지 전환 상세 분석 패널 -->
+                <div class="card p-3 shadow-sm mb-3">
+                    <h5 class="text-info mb-3">원리별 에너지 전환 분석</h5>
+                    
+                    <div class="mb-3 p-2 bg-dark rounded border border-secondary">
+                        <span class="small text-warning d-block mb-1"><b>1. 핵융합 질량 손실 ($E=mc^2$)</b></span>
+                        <div class="small text-light">▪ 감소한 질량: <span id="massLossText" class="fw-bold text-danger">0.000</span> M(solar)</div>
+                        <div class="small text-light">▪ 전환된 에너지: <span id="fusionEnergyText" class="fw-bold text-success">0.00</span> × 10⁴⁴ J</div>
+                    </div>
+
+                    <div class="mb-2 p-2 bg-dark rounded border border-secondary">
+                        <span class="small text-warning d-block mb-1"><b>2. 중력 수축 에너지 전환</b></span>
+                        <div class="small text-light">▪ 중력 퍼텐셜 전환 에너지: <span id="gravEnergyText" class="fw-bold text-info">0.00</span> × 10⁴⁴ J</div>
+                    </div>
+
+                    <div class="p-2 bg-secondary bg-opacity-10 rounded border border-info">
+                        <span class="small text-muted d-block">총 누적 에너지 방출량:</span>
+                        <span id="totalEnergyText" class="fw-bold text-info fs-5">0.00</span> <small class="text-muted">× 10⁴⁴ J</small>
+                    </div>
+                </div>
+
+                <!-- 연료 상태 패널 -->
+                <div class="card p-3 shadow-sm mb-3">
+                    <h5 class="text-warning mb-3">핵융합 연료 잔여량</h5>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>수소 (H): <strong id="hFuelText">100</strong>%</span>
+                            <span id="hStatus" class="text-success">연소 중</span>
+                        </div>
+                        <div class="progress" style="height: 8px; background-color: #30363d;">
+                            <div id="hBar" class="progress-bar bg-success" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>헬륨 (He): <strong id="heFuelText">0</strong>%</span>
+                            <span id="heStatus" class="text-muted">대기 중</span>
+                        </div>
+                        <div class="progress" style="height: 8px; background-color: #30363d;">
+                            <div id="heBar" class="progress-bar bg-warning" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>탄소/산소 (C/O): <strong id="cFuelText">0</strong>%</span>
+                            <span id="cStatus" class="text-muted">대기 중</span>
+                        </div>
+                        <div class="progress" style="height: 8px; background-color: #30363d;">
+                            <div id="cBar" class="progress-bar bg-danger" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-3 shadow-sm">
+                    <h6 class="text-info mb-2">적용된 핵심 방정식 (PPT 연계)</h6>
+                    <ul class="list-unstyled small text-muted mb-0">
+                        <li class="mb-1">▪ <b>정역학 평형:</b> <code>dP/dr = -GMρ/r²</code></li>
+                        <li class="mb-1">▪ <b>질량 방정식:</b> <code>dM/dr = 4πr²ρ</code></li>
+                        <li class="mb-1">▪ <b>에너지 전달:</b> <code>dT/dr (복사/대류)</code></li>
+                        <li class="mb-1">▪ <b>에너지 생성:</b> <code>dL/dr = 4πr²ρε</code></li>
+                        <li class="mb-1">▪ <b>상태 방정식:</b> <code>P = (kρT)/(μ m_H)</code></li>
+                        <li>▪ <b>질량-에너지:</b> <code>E = mc²</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 시각화 및 결과 영역 -->
+            <div class="col-lg-8">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="card p-3 text-center">
+                            <h6 class="text-light mb-2">항성 외형 및 크기 변화 애니메이션</h6>
+                            <canvas id="starCanvas"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card p-3">
+                            <h6 class="text-center text-light">내부 구조 프로파일 (압력/온도)</h6>
+                            <canvas id="profileChart" height="180"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card p-3">
+                            <h6 class="text-center text-light">H-R 도 (진화 궤적 및 현재 위치)</h6>
+                            <canvas id="hrChart" height="180"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

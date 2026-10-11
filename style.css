@@ -1,0 +1,39 @@
+body {
+    background-color: #0d1117;
+    color: #f0f6fc;
+    font-family: 'Malgun Gothic', sans-serif;
+}
+
+.card {
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+}
+
+.form-range {
+    accent-color: #58a6ff;
+}
+
+#starCanvas {
+    background-color: #010409;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    width: 100%;
+    height: 220px;
+}
+
+code {
+    color: #79c0ff;
+    background-color: rgba(110, 118, 129, 0.3);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.text-muted {
+    color: #8b949e !important;
+}
+
+label, h5, h6 {
+    color: #f0f6fc !important;
+}
